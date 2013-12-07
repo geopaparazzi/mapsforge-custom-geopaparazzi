@@ -55,6 +55,10 @@ public class MapScaleBar {
 		MILE;
 	}
 
+	public enum ScreenPosition {
+		BOTTOMLEFT, TOPLEFT, BOTTOMRIGHT, TOPRIGHT;
+	}
+
 	private static final int BITMAP_HEIGHT = 50;
 	private static final int BITMAP_WIDTH = 150;
 	private static final double LATITUDE_REDRAW_THRESHOLD = 0.2;
@@ -98,6 +102,7 @@ public class MapScaleBar {
 	private boolean redrawNeeded;
 	private boolean showMapScaleBar;
 	private final Map<TextField, String> textFields;
+	private ScreenPosition screenPosition = ScreenPosition.BOTTOMLEFT;
 
 	MapScaleBar(MapView mapView) {
 		this.mapView = mapView;
@@ -139,6 +144,10 @@ public class MapScaleBar {
 		this.showMapScaleBar = showMapScaleBar;
 	}
 
+	public void setScreenPosition(ScreenPosition screenPosition) {
+		this.screenPosition = screenPosition;
+	}
+
 	/**
 	 * Overrides the specified text field with the given string.
 	 * 
@@ -153,9 +162,17 @@ public class MapScaleBar {
 	}
 
 	private void drawScaleBar(float scaleBarLength, Paint paint) {
-		this.mapScaleCanvas.drawLine(7, 25, scaleBarLength + 3, 25, paint);
-		this.mapScaleCanvas.drawLine(5, 10, 5, 40, paint);
-		this.mapScaleCanvas.drawLine(scaleBarLength + 5, 10, scaleBarLength + 5, 40, paint);
+		float midlineY = 25;
+		float midlineXstart = 7;
+		float midlineXend = scaleBarLength + 3;
+		float startLineX = 5;
+		float endLineX = scaleBarLength + 5;
+		float verticalLineYstart = 10;
+		float verticalLineYend = 40;
+
+		this.mapScaleCanvas.drawLine(midlineXstart, midlineY, midlineXend, midlineY, paint);
+		this.mapScaleCanvas.drawLine(startLineX, verticalLineYstart, startLineX, verticalLineYend, paint);
+		this.mapScaleCanvas.drawLine(endLineX, verticalLineYstart, endLineX, verticalLineYend, paint);
 	}
 
 	private void drawScaleText(int scaleValue, String unitSymbol, Paint paint) {
@@ -235,8 +252,23 @@ public class MapScaleBar {
 	}
 
 	void draw(Canvas canvas) {
-		int top = this.mapView.getHeight() - BITMAP_HEIGHT - MARGIN_BOTTOM;
-		canvas.drawBitmap(this.mapScaleBitmap, MARGIN_LEFT, top, null);
+		int positionY = this.mapView.getHeight() - BITMAP_HEIGHT - MARGIN_BOTTOM;
+		int positionX = MARGIN_LEFT;
+		switch (this.screenPosition) {
+			case TOPLEFT:
+				positionY = MARGIN_BOTTOM;
+				break;
+			case BOTTOMRIGHT:
+				positionX = this.mapView.getWidth() - BITMAP_WIDTH - MARGIN_LEFT;
+				break;
+			case TOPRIGHT:
+				positionY = MARGIN_BOTTOM;
+				positionX = this.mapView.getWidth() - BITMAP_WIDTH - MARGIN_LEFT;
+				break;
+			default:
+				break;
+		}
+		canvas.drawBitmap(this.mapScaleBitmap, positionX, positionY, null);
 	}
 
 	void redrawScaleBar() {
