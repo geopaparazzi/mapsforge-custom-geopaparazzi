@@ -26,6 +26,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.util.Log;
 
 /**
  * A FrameBuffer uses two separate memory buffers to display the current and build up the next frame.
@@ -146,10 +147,29 @@ public class FrameBuffer {
 
 	synchronized void clear() {
 		if (this.mapViewBitmap1 != null) {
+			if (this.mapViewBitmap1.isRecycled()) {
+				/*
+				 * something odd happened, this should not happen, log it
+				 */
+				Log.e("MAPSFORGE.FRAMEBUFFER.clear", "Found that mapViewBitmap1 has been recycled, creating a new one.");
+				this.width = this.mapView.getWidth();
+				this.height = this.mapView.getHeight();
+				this.mapViewBitmap1 = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.RGB_565);
+				this.mapViewCanvas.setBitmap(this.mapViewBitmap1);
+			}
 			this.mapViewBitmap1.eraseColor(MAP_VIEW_BACKGROUND);
 		}
 
 		if (this.mapViewBitmap2 != null) {
+			if (this.mapViewBitmap2.isRecycled()) {
+				/*
+				 * something odd happened, this should not happen, log it
+				 */
+				Log.e("MAPSFORGE.FRAMEBUFFER.clear", "Found that mapViewBitmap2 has been recycled, creating a new one.");
+				this.width = this.mapView.getWidth();
+				this.height = this.mapView.getHeight();
+				this.mapViewBitmap2 = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.RGB_565);
+			}
 			this.mapViewBitmap2.eraseColor(MAP_VIEW_BACKGROUND);
 		}
 	}
@@ -163,6 +183,8 @@ public class FrameBuffer {
 	}
 
 	synchronized void destroy() {
+		Log.i("MAPSFORGE.FRAMEBUFFER.destroy", "FrameBuffer destroy called.");
+
 		if (this.mapViewBitmap1 != null) {
 			this.mapViewBitmap1.recycle();
 		}
