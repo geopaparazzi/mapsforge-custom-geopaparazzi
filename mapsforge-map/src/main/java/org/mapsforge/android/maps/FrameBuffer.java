@@ -99,8 +99,15 @@ public class FrameBuffer {
 		// draw the tile bitmap at the correct position
 		float left = (float) (tile.getPixelX() - pixelLeft);
 		float top = (float) (tile.getPixelY() - pixelTop);
-		this.mapViewCanvas.drawBitmap(bitmap, left, top, null);
-		return true;
+		if (bitmap == null || this.mapViewCanvas == null) {
+			return false;
+		}
+		try {
+			this.mapViewCanvas.drawBitmap(bitmap, left, top, null);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	/**
