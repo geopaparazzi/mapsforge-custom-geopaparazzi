@@ -19,6 +19,7 @@ import org.mapsforge.android.maps.PausableThread;
 import org.mapsforge.core.model.Tile;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 /**
  * A MapWorker uses a {@link MapGenerator} to generate map tiles. It runs in a separate thread to avoid blocking the UI
@@ -70,7 +71,13 @@ public class MapWorker extends PausableThread {
 			return;
 		}
 
-		boolean success = this.mapGenerator.executeJob(mapGeneratorJob, this.tileBitmap);
+		boolean success;
+		try {
+			success = this.mapGenerator.executeJob(mapGeneratorJob, this.tileBitmap);
+		} catch (Exception e) {
+			Log.e(THREAD_NAME, "Error with tile: " + this.tileBitmap + ": " + e.getLocalizedMessage());
+			success = false;
+		}
 
 		if (!isInterrupted() && success) {
 			if (this.mapView.getFrameBuffer().drawBitmap(mapGeneratorJob.tile, this.tileBitmap)) {
