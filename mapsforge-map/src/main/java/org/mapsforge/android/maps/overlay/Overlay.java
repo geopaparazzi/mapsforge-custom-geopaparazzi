@@ -252,13 +252,18 @@ public abstract class Overlay extends Thread {
 			}
 		}
 
+		// help the GC
+		internalMapView = null;
+
 		// free the overlay bitmaps memory
 		if (this.overlayBitmap1 != null) {
 			this.overlayBitmap1.recycle();
+			this.overlayBitmap1 = null;
 		}
 
 		if (this.overlayBitmap2 != null) {
 			this.overlayBitmap2.recycle();
+			this.overlayBitmap2 = null;
 		}
 	}
 
@@ -399,21 +404,21 @@ public abstract class Overlay extends Thread {
 		// check if the previous overlay bitmaps must be recycled
 		if (this.overlayBitmap1 != null) {
 			this.overlayBitmap1.recycle();
+			this.overlayBitmap1 = null;
 		}
 		if (this.overlayBitmap2 != null) {
 			this.overlayBitmap2.recycle();
+			this.overlayBitmap2 = null;
 		}
 
 		// check if the new dimensions are positive
 		int width = this.internalMapView.getWidth();
 		int height = this.internalMapView.getHeight();
-		//		Log.i("OVERLAY", "new Bitmap size" +width + "/" + height);
+		// Log.i("OVERLAY", "new Bitmap size" +width + "/" + height);
 		if (width > 0 && height > 0) {
 			// create the two overlay bitmaps with the correct dimensions
-			this.overlayBitmap1 = Bitmap.createBitmap(width,
-					height, Bitmap.Config.ARGB_8888);
-			this.overlayBitmap2 = Bitmap.createBitmap(width,
-					height, Bitmap.Config.ARGB_8888);
+			this.overlayBitmap1 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+			this.overlayBitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 			this.redraw = true;
 			this.hasValidDimensions = true;
 		} else {
@@ -427,13 +432,15 @@ public abstract class Overlay extends Thread {
 	public boolean sizeHasChanged() {
 		return this.changedSize;
 	}
-	
-	public void dispose(){
+
+	public void dispose() {
 		if (this.overlayBitmap1 != null) {
 			this.overlayBitmap1.recycle();
+			this.overlayBitmap1 = null;
 		}
 		if (this.overlayBitmap2 != null) {
 			this.overlayBitmap2.recycle();
+			this.overlayBitmap2 = null;
 		}
 	}
 }

@@ -33,7 +33,7 @@ public class MapMover extends PausableThread implements KeyEvent.Callback {
 	private static final String THREAD_NAME = "MapMover";
 	private static final float TRACKBALL_MOVE_SPEED_FACTOR = 40;
 
-	private final MapView mapView;
+	private MapView mapView;
 	private float moveSpeedFactor;
 	private float moveX;
 	private float moveY;
@@ -225,6 +225,11 @@ public class MapMover extends PausableThread implements KeyEvent.Callback {
 		this.mapView.redrawTiles();
 		sleep(FRAME_LENGTH_IN_MS);
 	}
+
+	@Override
+	protected void afterRun() {
+		this.mapView = null;
+ 	}
 
 	@Override
 	protected String getThreadName() {
