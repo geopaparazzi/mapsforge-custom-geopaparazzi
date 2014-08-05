@@ -33,7 +33,7 @@ public class MapMover extends PausableThread implements KeyEvent.Callback {
 	private static final String THREAD_NAME = "MapMover";
 	private static final float TRACKBALL_MOVE_SPEED_FACTOR = 40;
 
-	private final MapView mapView;
+	private MapView mapView;
 	private float moveSpeedFactor;
 	private float moveX;
 	private float moveY;
@@ -223,8 +223,14 @@ public class MapMover extends PausableThread implements KeyEvent.Callback {
 		// move the map and the overlays
 		this.mapView.getMapPosition().moveMap(timeElapsed * this.moveX, timeElapsed * this.moveY);
 		this.mapView.redrawTiles();
+		onMoveFinish();
 		sleep(FRAME_LENGTH_IN_MS);
 	}
+
+	@Override
+	protected void afterRun() {
+		this.mapView = null;
+ 	}
 
 	@Override
 	protected String getThreadName() {
@@ -234,5 +240,12 @@ public class MapMover extends PausableThread implements KeyEvent.Callback {
 	@Override
 	protected boolean hasWork() {
 		return this.moveX != 0 || this.moveY != 0;
+	}
+	
+	void onMoveFinish() {
+		//Call to requestRedraw for overlays to cancel current drawing and redraw
+		for (int i = 0, n = this.mapView.getOverlays().size(); i < n; ++i) {
+			this.mapView.getOverlays().get(i).requestRedraw();
+		}
 	}
 }

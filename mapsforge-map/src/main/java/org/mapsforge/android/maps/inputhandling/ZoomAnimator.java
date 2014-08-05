@@ -29,7 +29,7 @@ public class ZoomAnimator extends PausableThread {
 	private static final String THREAD_NAME = "ZoomAnimator";
 
 	private boolean executeAnimation;
-	private final MapView mapView;
+	private MapView mapView;
 	private float pivotX;
 	private float pivotY;
 	private float scaleFactorApplied;
@@ -102,11 +102,17 @@ public class ZoomAnimator extends PausableThread {
 		if (timeElapsed >= DEFAULT_DURATION) {
 			this.executeAnimation = false;
 			this.mapView.redrawTiles();
+			onZoomFinish();
 		} else {
 			this.mapView.postInvalidate();
 			sleep(FRAME_LENGTH_IN_MS);
 		}
 	}
+
+	@Override
+	protected void afterRun() {
+		this.mapView = null;
+ 	}
 
 	@Override
 	protected String getThreadName() {
@@ -116,5 +122,12 @@ public class ZoomAnimator extends PausableThread {
 	@Override
 	protected boolean hasWork() {
 		return this.executeAnimation;
+	}
+	
+	void onZoomFinish() {
+		//Call to requestRedraw for overlays to cancel current drawing and redraw
+		for (int i = 0, n = this.mapView.getOverlays().size(); i < n; ++i) {
+			this.mapView.getOverlays().get(i).requestRedraw();
+		}
 	}
 }
