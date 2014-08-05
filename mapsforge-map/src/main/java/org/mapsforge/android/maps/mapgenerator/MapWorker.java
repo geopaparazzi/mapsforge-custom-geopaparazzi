@@ -19,6 +19,7 @@ import org.mapsforge.android.maps.PausableThread;
 import org.mapsforge.core.model.Tile;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 /**
  * A MapWorker uses a {@link MapGenerator} to generate map tiles. It runs in a separate thread to avoid blocking the UI
@@ -27,12 +28,12 @@ import android.graphics.Bitmap;
 public class MapWorker extends PausableThread {
 	private static final String THREAD_NAME = "MapWorker";
 
-	private final TileCache fileSystemTileCache;
-	private final TileCache inMemoryTileCache;
-	private final JobQueue jobQueue;
+	private TileCache fileSystemTileCache;
+	private TileCache inMemoryTileCache;
+	private JobQueue jobQueue;
 	private MapGenerator mapGenerator;
-	private final MapView mapView;
-	private final Bitmap tileBitmap;
+	private MapView mapView;
+	private Bitmap tileBitmap;
 
 	/**
 	 * @param mapView
@@ -55,10 +56,16 @@ public class MapWorker extends PausableThread {
 		this.mapGenerator = mapGenerator;
 	}
 
-	@Override
-	protected void afterRun() {
+ 	@Override
+ 	protected void afterRun() {
+		this.mapView = null;
+		this.mapGenerator = null;
+		this.fileSystemTileCache = null;
+		this.inMemoryTileCache = null;
+		this.jobQueue = null;
 		this.tileBitmap.recycle();
-	}
+		this.tileBitmap = null;
+ 	}
 
 	@Override
 	protected void doWork() {
@@ -70,7 +77,13 @@ public class MapWorker extends PausableThread {
 			return;
 		}
 
-		boolean success = this.mapGenerator.executeJob(mapGeneratorJob, this.tileBitmap);
+		boolean success;
+		try {
+			success = this.mapGenerator.executeJob(mapGeneratorJob, this.tileBitmap);
+		} catch (Exception e) {
+			Log.e(THREAD_NAME, "Error with tile: " + this.tileBitmap + ": " + e.getLocalizedMessage());
+			success = false;
+		}
 
 		if (!isInterrupted() && success) {
 			if (this.mapView.getFrameBuffer().drawBitmap(mapGeneratorJob.tile, this.tileBitmap)) {

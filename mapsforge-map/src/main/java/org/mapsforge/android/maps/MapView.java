@@ -19,6 +19,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Canvas;
+import android.util.AttributeSet;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
 
 import org.mapsforge.android.AndroidUtils;
 import org.mapsforge.android.maps.inputhandling.MapMover;
@@ -46,15 +54,6 @@ import org.mapsforge.core.model.Tile;
 import org.mapsforge.core.util.MercatorProjection;
 import org.mapsforge.map.reader.MapDatabase;
 import org.mapsforge.map.reader.header.FileOpenResult;
-
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Canvas;
-import android.util.AttributeSet;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.ViewGroup;
 
 /**
  * A MapView shows a map on the display of the device. It handles all user input and touch gestures to move and zoom the
@@ -86,7 +85,7 @@ public class MapView extends ViewGroup {
 	private final TileCache fileSystemTileCache;
 	private final FpsCounter fpsCounter;
 	private final FrameBuffer frameBuffer;
-	private final TileCache inMemoryTileCache;
+	private TileCache inMemoryTileCache;
 	private JobParameters jobParameters;
 	private final JobQueue jobQueue;
 	private final MapController mapController;
@@ -229,6 +228,15 @@ public class MapView extends ViewGroup {
 	 */
 	public TileCache getInMemoryTileCache() {
 		return this.inMemoryTileCache;
+	}
+
+	/**
+	 * @param capacity the in-memory tile cache capacity to use.
+	 */
+	public void setInMemoryTileCacheSize(int capacity) {
+		this.inMemoryTileCache.destroy();
+		this.inMemoryTileCache = null;
+		this.inMemoryTileCache = new InMemoryTileCache(capacity);
 	}
 
 	/**
@@ -662,7 +670,12 @@ public class MapView extends ViewGroup {
 		this.frameBuffer.draw(canvas);
 		synchronized (this.overlays) {
 			for (int i = 0, n = this.overlays.size(); i < n; ++i) {
-				this.overlays.get(i).draw(canvas);
+				try {
+					this.overlays.get(i).draw(canvas);
+				} catch (Exception e) {
+					android.util.Log.e("MAPSFORGE#MAPVIEW#ONDRAW", "Problems drawing overlay", e);
+					e.printStackTrace();
+				}
 			}
 		}
 

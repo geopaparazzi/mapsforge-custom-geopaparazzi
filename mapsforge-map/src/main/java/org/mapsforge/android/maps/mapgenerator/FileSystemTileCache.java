@@ -316,10 +316,18 @@ public class FileSystemTileCache implements TileCache {
 			bitmap.copyPixelsToBuffer(this.byteBuffer);
 			byte[] array = this.byteBuffer.array();
 
-			fileOutputStream = new FileOutputStream(outputFile);
-			fileOutputStream.write(array, 0, array.length);
+			File parentFile = outputFile.getParentFile();
+			if (!parentFile.exists()) {
+				if (parentFile.mkdirs()) {
+					LOGGER.log(Level.INFO, "Created folder: " + parentFile);
+				}
+			}
+			if (parentFile.exists()) {
+				fileOutputStream = new FileOutputStream(outputFile);
+				fileOutputStream.write(array, 0, array.length);
 
-			this.map.put(mapGeneratorJob, outputFile);
+				this.map.put(mapGeneratorJob, outputFile);
+			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, null, e);
 		} finally {
