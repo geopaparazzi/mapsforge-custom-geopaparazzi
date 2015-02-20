@@ -259,17 +259,20 @@ public class FileSystemTileCache implements TileCache {
 		FileInputStream fileInputStream = null;
 		try {
 			File inputFile = this.map.get(mapGeneratorJob);
+            if (inputFile !=null) {
+                fileInputStream = new FileInputStream(inputFile);
+                byte[] array = this.byteBuffer.array();
+                int bytesRead = fileInputStream.read(array);
 
-			fileInputStream = new FileInputStream(inputFile);
-			byte[] array = this.byteBuffer.array();
-			int bytesRead = fileInputStream.read(array);
-
-			if (bytesRead == array.length) {
-				this.byteBuffer.rewind();
-				this.bitmapGet.copyPixelsFromBuffer(this.byteBuffer);
-				return this.bitmapGet;
-			}
-
+                if (bytesRead == array.length) {
+                    this.byteBuffer.rewind();
+                    this.bitmapGet.copyPixelsFromBuffer(this.byteBuffer);
+                    return this.bitmapGet;
+                }
+            }else{
+                this.map.remove(mapGeneratorJob);
+                return null;
+            }
 			return null;
 		} catch (FileNotFoundException e) {
 			this.map.remove(mapGeneratorJob);
